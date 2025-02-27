@@ -1,109 +1,14 @@
 version: '3'
 
 services:
-  db:
-    image: postgres:12-alpine
-    # networks:
-    #   - new
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: hydra
-    ports:
-      - 5432:5432
-    # volumes:
-    #   - database_postgres:/var/lib/postgresql/data:rw
-
   web:
     build:
       context: web/.
       args:
         BUILD_TYPE: docker
     ports:
-      - "3000:80"
-    depends_on:
-      - hydra
-    links:
-      - hydra
+      - "3003:80"
     environment:
-      - HYDRA_ADMIN_URL=http://hydra:4445
-      - PUBLIC_URL=http://hydra:4444
-      - HYDRA_PROXY_URL=http://hydra:4445
-
-  hydra-migrate:
-    image: oryd/hydra:1.4.8
-    links:
-      - db:db
-    depends_on:
-      - db
-    # networks:
-    #   - intranet
-    restart: on-failure
-    environment:
-      - DSN=postgres://postgres:postgres@db:5432/hydra
-      - LOG_LEVEL=debug
-      - HYDRA_SYSTEM_SECRET=youReallyNeedToChangeThis
-    command:
-      migrate sql -e --yes
-    
-  hydra:
-    image: oryd/hydra:1.4.8
-    restart: unless-stopped
-    ports:
-      - "4444:4444" # Public port
-      - "4445:4445" # Admin port
-      - "5555:5555" # Port for hydra token user
-    depends_on:
-      - db
-      - hydra-migrate
-    environment:
-      - URLS_SELF_ISSUER=http://127.0.0.1:4444
-      - DSN=postgres://postgres:postgres@db:5432/hydra
-      - SECRETS_SYSTEM=youReallyNeedToChangeThis
-      - OIDC_SUBJECT_IDENTIFIERS_SUPPORTED_TYPES=public,pairwise
-      - OIDC_SUBJECT_IDENTIFIERS_PAIRWISE_SALT=youReallyNeedToChangeThis
-      - URLS_CONSENT=http://127.0.0.1:3000/consent
-      - URLS_LOGIN=http://127.0.0.1:3000/login
-      - URLS_LOGOUT=http://127.0.0.1:3000/logout
-    command:
-      # serve -c /etc/config/hydra/hydra.yml all --dangerous-force-http
-      serve all --dangerous-force-http
-    # volumes:
-    #   -
-    #     type: bind
-    #     source: ./hydraConfig
-    #     target: /etc/config/hydra
-
-  # consent:
-  #   environment:
-  #     - HYDRA_ADMIN_URL=http://hydra:4445
-  #   image: oryd/hydra-login-consent-node:v1.3.2
-  #   ports:
-  #     - "3000:3000"
-  #   restart: unless-stopped
-
-#
-# volumes:
-#   database_postgres:
-#     driver: local
-#   app_data:
-#     driver: local
-
-# networks:
-#   new:
-
-  # server:
-    # image: gitea/gitea:1.13.3
-    # container_name: gitea
-    # environment:
-    #   - USER_UID=1000
-    #   - USER_GID=1000
-    # restart: always
-    # volumes:
-    #   - ./gitea:/data
-    #   - /etc/timezone:/etc/timezone:ro
-    #   - /etc/localtime:/etc/localtime:ro
-    # ports:
-    #   - "3001:3000"
-    #   - "222:22"
-
+      - HYDRA_ADMIN_URL=http://host.docker.internal:4445
+      - PUBLIC_URL=http://host.docker.internal:4444
+      - HYDRA_PROXY_URL=http://host.docker.internal:4445

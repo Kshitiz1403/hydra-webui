@@ -60,17 +60,33 @@ export default {
   // Axios module configuration: https://go.nuxtjs.dev/config-axios
   axios: {
     proxy: true,
+    followRedirects: true,
+    maxRedirects: 5
   },
 
   proxy: {
-    "/clients": process.env.HYDRA_PROXY_URL,
-    "/oauth2": process.env.HYDRA_PROXY_URL,
+    '/clients': {
+      target: process.env.HYDRA_PROXY_URL,
+      pathRewrite: {
+        '^/clients': '/clients'
+      },
+      followRedirects: true,
+      changeOrigin: true
+    },
+    '/oauth2': {
+      target: process.env.HYDRA_PROXY_URL,
+      pathRewrite: {
+        '^/oauth2': '/oauth2'
+      },
+      followRedirects: true,
+      changeOrigin: true
+    }
   },
 
   /* application run at root by default */
-  // router: {
-  //   base: "/hydra" || "",
-  // },
+  router: {
+    base: process.env.ROUTER_BASE || "",
+  },
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {},
